@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# MATLAB temporary files
+*.asv
+*.m~
+*.autosave
+
+# MATLAB generated files
+*.slxc
+
+# Generated simulation results
+*.mat
