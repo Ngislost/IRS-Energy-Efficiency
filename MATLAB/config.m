@@ -1,91 +1,100 @@
 %% config.m
-% Shared simulation parameters for IRS energy-efficiency study
-% Edit simulation parameters here rather than hard-coding them elsewhere.
+% Shared simulation parameters
+% Edit ONLY this file to change simulation parameters.
 
-%% =========================
-% Carrier and system parameters
-% ==========================
+%% CST-validated element gain
 
-FC_GHZ = 28;              % Carrier frequency (GHz)
-BW_HZ = 200e6;            % System bandwidth (Hz)
-
-PT_DBM = 23;              % BS transmit power (dBm)
-PT_W = 10^((PT_DBM-30)/10);
-
-NF_DB = 7;                % Receiver noise figure (dB)
-TEMP_K = 290;             % System temperature (K)
-
-% Thermal noise power
-NOISE_DBM = -174 + 10*log10(BW_HZ) + NF_DB;
-NOISE_W = 10^((NOISE_DBM-30)/10);
-
-
-%% =========================
-% IRS hardware parameters
-% ==========================
-
-PSTATIC_W = 3.0;          % Static IRS/controller power (W)
-PC_W = 20e-3;             % Circuit power per IRS element (W)
-
-
-%% =========================
-% IRS element gain
-% ==========================
-
-% Temporary placeholder until CST simulation is finalized.
-% DO NOT treat this as the final CST result.
-
-G_ELEMENT_DBI = 6.16;
+G_ELEMENT_DBI = 6.16;        % Temporary value until CST is complete
 G_ELEMENT_LIN = 10^(G_ELEMENT_DBI/10);
 
 
-%% =========================
-% Geometry
-% ==========================
+%% Transmit power
 
-D_BS_IRS = 20;            % BS-to-IRS distance (m)
-
-
-%% =========================
-% IRS size sweep
-% ==========================
-
-N_RANGE = 4:4:256;
+PT_DBM = 23;
+PT_W = 10^((PT_DBM - 30)/10);
 
 
-%% =========================
-% Blockage probability
-% ==========================
+%% IRS hardware power
 
-BETA_RANGE = 0:0.05:1.0;
-
-
-%% =========================
-% Distance sweep
-% ==========================
-
-D_RANGE = 10:10:300;
+PSTATIC_W = 3.0;
+PC_W = 20e-3;
 
 
-%% =========================
-% Phase-resolution factors
-% ==========================
+%% Channel parameters
 
-KAPPA_CONT = 1.00;        % Continuous phase
-KAPPA_3BIT = 0.84;        % 3-bit phase resolution
-KAPPA_1BIT = 0.63;        % 1-bit phase resolution
+FC_GHZ = 28;
+BW_HZ = 200e6;
+NF_DB = 7.0;
+TEMP_K = 290;
 
-
-%% =========================
-% Monte Carlo settings
-% ==========================
+D_BS_IRS = 20;
 
 N_TRIALS = 10000;
 
 
-%% =========================
-% Sensitivity analysis
-% ==========================
+%% Noise power
 
-PSTATIC_LIST = [1.5, 3.0, 4.8];      % W
-PC_LIST = [10e-3, 20e-3, 30e-3];     % W
+NOISE_DBM = -174 + ...
+            10*log10(BW_HZ) + ...
+            NF_DB;
+
+NOISE_W = 10^((NOISE_DBM - 30)/10);
+
+
+%% Sweep ranges
+
+N_RANGE = 4:4:256;
+
+BETA_RANGE = 0:0.05:1.0;
+
+D_RANGE = 10:10:300;
+
+
+%% Phase factors
+
+KAPPA_CONT = 1.00;
+
+KAPPA_3BIT = 0.84;
+
+KAPPA_1BIT = 0.63;
+
+
+%% Sensitivity analysis
+
+PSTATIC_LIST = [1.5, 3.0, 4.8];
+
+PC_LIST = [10e-3, 20e-3, 30e-3];
+
+
+%% Create shared configuration structure
+
+config.G_ELEMENT_DBI = G_ELEMENT_DBI;
+config.G_ELEMENT_LIN = G_ELEMENT_LIN;
+
+config.PT_DBM = PT_DBM;
+config.PT_W = PT_W;
+
+config.PSTATIC_W = PSTATIC_W;
+config.PC_W = PC_W;
+
+config.FC_GHZ = FC_GHZ;
+config.BW_HZ = BW_HZ;
+config.NF_DB = NF_DB;
+config.TEMP_K = TEMP_K;
+
+config.D_BS_IRS = D_BS_IRS;
+config.N_TRIALS = N_TRIALS;
+
+config.NOISE_DBM = NOISE_DBM;
+config.NOISE_W = NOISE_W;
+
+config.N_RANGE = N_RANGE;
+config.BETA_RANGE = BETA_RANGE;
+config.D_RANGE = D_RANGE;
+
+config.KAPPA_CONT = KAPPA_CONT;
+config.KAPPA_3BIT = KAPPA_3BIT;
+config.KAPPA_1BIT = KAPPA_1BIT;
+
+config.PSTATIC_LIST = PSTATIC_LIST;
+config.PC_LIST = PC_LIST;
