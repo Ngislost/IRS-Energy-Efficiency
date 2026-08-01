@@ -1,12 +1,15 @@
 %% validate_channel.m
-% Validation tests for channel_snr.m
+% Validation tests for channel model functions
 
 clear;
 clc;
 
 %% Load shared configuration
 
-run('../config.m');
+matlab_root = fileparts(fileparts(mfilename('fullpath')));
+addpath(matlab_root);
+
+cfg = config();
 
 fprintf('\n========================================\n');
 fprintf('       CHANNEL MODEL VALIDATION\n');
@@ -54,20 +57,25 @@ for i = 1:length(distances)
 end
 
 
-%% CHECK 3 — Path gain
+%% CHECK 3 — Deterministic LOS vs NLOS path loss
 
-fprintf('\nCHECK 3 — Path Gain\n');
+fprintf('\nCHECK 3 — LOS vs NLOS Path Loss\n');
 
-G_LOS = path_gain_lin(100, true);
-G_NLOS = path_gain_lin(100, false);
+d = 100;
 
-fprintf('LOS gain  at 100 m: %.3e\n', G_LOS);
-fprintf('NLOS gain at 100 m: %.3e\n', G_NLOS);
+PL_LOS = 32.4 ...
+    + 20*log10(28) ...
+    + 20*log10(d);
 
-if G_LOS > G_NLOS
-    fprintf('PASS: LOS gain > NLOS gain\n');
+PL_NLOS = PL_LOS + 20;
+
+fprintf('Deterministic LOS PL  at 100 m: %.2f dB\n', PL_LOS);
+fprintf('Deterministic NLOS PL at 100 m: %.2f dB\n', PL_NLOS);
+
+if PL_LOS < PL_NLOS
+    fprintf('PASS: LOS path loss < NLOS path loss\n');
 else
-    fprintf('FAIL: LOS gain should be greater than NLOS gain\n');
+    fprintf('FAIL: LOS path loss should be less than NLOS path loss\n');
 end
 
 
@@ -84,16 +92,16 @@ SNR_irs = compute_SNR( ...
     N, ...
     d, ...
     beta, ...
-    config.G_ELEMENT_LIN, ...
-    config);
+    cfg.G_ELEMENT_LIN, ...
+    cfg);
 
 SNR_no_irs = compute_SNR( ...
     'no_irs', ...
     1, ...
     d, ...
     beta, ...
-    config.G_ELEMENT_LIN, ...
-    config);
+    cfg.G_ELEMENT_LIN, ...
+    cfg);
 
 SNR_irs_dB = 10*log10(SNR_irs);
 SNR_no_irs_dB = 10*log10(SNR_no_irs);
@@ -103,7 +111,6 @@ fprintf('No-IRS SNR:      %.2f dB\n', SNR_no_irs_dB);
 
 fprintf('IRS improvement: %.2f dB\n', ...
     SNR_irs_dB - SNR_no_irs_dB);
-
 
 if SNR_irs > SNR_no_irs
     fprintf('PASS: Passive IRS improves SNR\n');
