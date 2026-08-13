@@ -26,7 +26,14 @@ function SNR = compute_SNR(scheme, N, d_UE, beta, G_elem, config)
 
     % BS-to-IRS is assumed LOS because IRS is wall-mounted.
 
-    G_r = G_elem * path_gain_lin(d_UE, true);
+    % BS -> IRS link: fixed 20 m, assumed LOS
+    G_BS_IRS = path_gain_lin(config.D_BS_IRS, true);
+
+    % IRS -> UE link
+    G_IRS_UE = path_gain_lin(d_UE, true);
+
+    % Cascaded BS -> IRS -> UE gain
+    G_r = G_BS_IRS * G_elem * G_IRS_UE;
 
 
     %% Select communication scheme
@@ -56,20 +63,23 @@ function SNR = compute_SNR(scheme, N, d_UE, beta, G_elem, config)
 
         case 'active'
 
-            % Active IRS model
-            %
-            % Amplification power budget:
-            % P_amp = N * Pc
+            % Simplified active-IRS power-budget baseline.
+            % Pt + N*Pc is treated as effective transmit power.
+            % This is a power-budget comparison, not a full
+            % physical active-IRS amplifier model.
 
             P_amp = N * config.PC_W;
 
             SNR = (config.PT_W + P_amp) * ...
-                  N^2 * G_r / config.NOISE_W;
+                N^2 * G_r / config.NOISE_W;
 
 
         case 'relay'
 
-            % Power-equivalent DF relay
+            % Simplified power-equivalent DF relay baseline.
+            % This is NOT a full two-hop DF relay model.
+            % The relay is represented as a single equivalent link
+            % with the same hardware-power budget.
 
             N_avg = round(median(config.N_RANGE));
 

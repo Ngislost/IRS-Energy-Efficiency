@@ -10,4 +10,4 @@
 *.slxc
 
 # Generated simulation results
-*.mat
+*.mat.DS_Store

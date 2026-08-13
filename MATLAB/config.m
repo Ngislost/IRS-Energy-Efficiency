@@ -1,17 +1,20 @@
+function config = config()
+
 %% config.m
 % Shared simulation parameters
 % Edit ONLY this file to change simulation parameters.
 
 %% CST-validated element gain
 
-G_ELEMENT_DBI = 6.16;        % Temporary value until CST is complete
-G_ELEMENT_LIN = 10^(G_ELEMENT_DBI/10);
+% TEMPORARY VALUE — replace with actual CST result later.
+G_ELEMENT_DBI = 6.16;
+G_ELEMENT_LIN = 10^(G_ELEMENT_DBI / 10);
 
 
 %% Transmit power
 
 PT_DBM = 23;
-PT_W = 10^((PT_DBM - 30)/10);
+PT_W = 10^((PT_DBM - 30) / 10);
 
 
 %% IRS hardware power
@@ -27,6 +30,7 @@ BW_HZ = 200e6;
 NF_DB = 7.0;
 TEMP_K = 290;
 
+% BS -> IRS distance
 D_BS_IRS = 20;
 
 N_TRIALS = 10000;
@@ -34,11 +38,11 @@ N_TRIALS = 10000;
 
 %% Noise power
 
-NOISE_DBM = -174 + ...
-            10*log10(BW_HZ) + ...
-            NF_DB;
+NOISE_DBM = -174 ...
+    + 10 * log10(BW_HZ) ...
+    + NF_DB;
 
-NOISE_W = 10^((NOISE_DBM - 30)/10);
+NOISE_W = 10^((NOISE_DBM - 30) / 10);
 
 
 %% Sweep ranges
@@ -64,6 +68,18 @@ KAPPA_1BIT = 0.63;
 PSTATIC_LIST = [1.5, 3.0, 4.8];
 
 PC_LIST = [10e-3, 20e-3, 30e-3];
+
+
+%% Relay reference power
+
+% The relay power budget is fixed and does NOT change
+% with the IRS element-count sweep.
+
+N_REF_RELAY = 64;
+
+P_RELAY_W = PT_W ...
+    + PSTATIC_W ...
+    + N_REF_RELAY * PC_W;
 
 
 %% Create shared configuration structure
@@ -98,3 +114,8 @@ config.KAPPA_1BIT = KAPPA_1BIT;
 
 config.PSTATIC_LIST = PSTATIC_LIST;
 config.PC_LIST = PC_LIST;
+
+config.N_REF_RELAY = N_REF_RELAY;
+config.P_RELAY_W = P_RELAY_W;
+
+end
