@@ -1,88 +1,145 @@
 function config = config()
 
-%% config.m
-% Shared simulation parameters
-% Edit ONLY this file to change simulation parameters.
+%% =========================================================
+%  config.m
+%  Shared simulation parameters
+%  Edit this file to change simulation parameters.
+%  =========================================================
 
-%% CST-validated element gain
 
-% TEMPORARY VALUE — replace with actual CST result later.
-G_ELEMENT_DBI = 6.16;
+%% CST-validated IRS element gain
+
+% Realized gain obtained from CST at 28 GHz.
+G_ELEMENT_DBI = 5.724;
+
+% Convert dBi to linear scale.
 G_ELEMENT_LIN = 10^(G_ELEMENT_DBI / 10);
 
 
-%% Transmit power
+%% =========================================================
+%  Transmit power
+%  =========================================================
 
 PT_DBM = 23;
+
+% Convert dBm to watts.
 PT_W = 10^((PT_DBM - 30) / 10);
 
 
-%% IRS hardware power
+%% =========================================================
+%  IRS hardware power
+%  =========================================================
 
+% Static power consumed by the IRS controller/hardware.
 PSTATIC_W = 3.0;
+
+% Power consumed per IRS element.
 PC_W = 20e-3;
 
 
-%% Channel parameters
+%% =========================================================
+%  Channel parameters
+%  =========================================================
 
 FC_GHZ = 28;
+
+% System bandwidth.
 BW_HZ = 200e6;
+
+% Receiver noise figure.
 NF_DB = 7.0;
+
+% Noise temperature.
 TEMP_K = 290;
 
-% BS -> IRS distance
+% BS -> IRS horizontal distance.
 D_BS_IRS = 20;
+
+% BS and UE heights used by the channel model.
+H_BS_M = 25.0;
+H_UT_M = 1.5;
+
+
+%% =========================================================
+%  Monte Carlo parameters
+%  =========================================================
 
 N_TRIALS = 10000;
 
 
-%% Noise power
+%% =========================================================
+%  Thermal noise power
+%  =========================================================
 
-NOISE_DBM = -174 ...
-    + 10 * log10(BW_HZ) ...
-    + NF_DB;
+% Noise power in dBm.
+NOISE_DBM = -174 + 10 * log10(BW_HZ) + NF_DB;
 
+% Convert dBm to watts.
 NOISE_W = 10^((NOISE_DBM - 30) / 10);
 
 
-%% Sweep ranges
+%% =========================================================
+%  IRS element-number sweep
+%  =========================================================
 
 N_RANGE = 4:4:256;
 
+
+%% =========================================================
+%  Blockage probability sweep
+%  =========================================================
+
 BETA_RANGE = 0:0.05:1.0;
+
+
+%% =========================================================
+%  UE distance sweep
+%  =========================================================
 
 D_RANGE = 10:10:300;
 
 
-%% Phase factors
+%% =========================================================
+%  IRS phase-resolution factors
+%  =========================================================
 
+% Ideal continuous phase control.
 KAPPA_CONT = 1.00;
 
+% Approximate coherent-combining factor for 3-bit phase control.
 KAPPA_3BIT = 0.84;
 
+% Approximate coherent-combining factor for 1-bit phase control.
 KAPPA_1BIT = 0.63;
 
 
-%% Sensitivity analysis
+%% =========================================================
+%  Hardware-power sensitivity analysis
+%  =========================================================
 
+% Static IRS power values to test.
 PSTATIC_LIST = [1.5, 3.0, 4.8];
 
+% Per-element power values to test.
 PC_LIST = [10e-3, 20e-3, 30e-3];
 
 
-%% Relay reference power
+%% =========================================================
+%  Relay reference configuration
+%  =========================================================
 
-% The relay power budget is fixed and does NOT change
-% with the IRS element-count sweep.
-
+% Reference number of elements used to define the
+% equivalent relay power budget.
 N_REF_RELAY = 64;
 
-P_RELAY_W = PT_W ...
-    + PSTATIC_W ...
-    + N_REF_RELAY * PC_W;
+% Fixed relay power budget.
+P_RELAY_W = ...
+    PT_W + PSTATIC_W + N_REF_RELAY * PC_W;
 
 
-%% Create shared configuration structure
+%% =========================================================
+%  Store parameters in configuration structure
+%  =========================================================
 
 config.G_ELEMENT_DBI = G_ELEMENT_DBI;
 config.G_ELEMENT_LIN = G_ELEMENT_LIN;
@@ -99,6 +156,9 @@ config.NF_DB = NF_DB;
 config.TEMP_K = TEMP_K;
 
 config.D_BS_IRS = D_BS_IRS;
+config.H_BS_M = H_BS_M;
+config.H_UT_M = H_UT_M;
+
 config.N_TRIALS = N_TRIALS;
 
 config.NOISE_DBM = NOISE_DBM;

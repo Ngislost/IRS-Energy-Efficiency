@@ -27,7 +27,9 @@ PL_expected = 28.0 ...
     + 22*log10(d) ...
     + 20*log10(fc);
 
-PL_test = path_loss_dB(d, true);
+% Pass cfg because path_loss_dB now uses
+% configuration parameters internally.
+PL_test = path_loss_dB(d, true, cfg);
 
 fprintf('Expected deterministic PL: %.2f dB\n', PL_expected);
 fprintf('Sampled PL with shadow fading: %.2f dB\n', PL_test);
@@ -73,16 +75,18 @@ fprintf('\nCHECK 3 — LOS vs NLOS Path Loss\n');
 d = 100;
 fc = cfg.FC_GHZ;
 
-% 3GPP UMa LOS
+% Deterministic LOS component
 PL_LOS = 28.0 ...
     + 22*log10(d) ...
     + 20*log10(fc);
 
-% 3GPP UMa NLOS
+% NLOS candidate
 PL_NLOS_candidate = 13.54 ...
     + 39.08*log10(d) ...
     + 20*log10(fc);
 
+% NLOS path loss is constrained to be
+% at least as large as LOS path loss.
 PL_NLOS = max(PL_LOS, PL_NLOS_candidate);
 
 fprintf('Deterministic LOS PL  at 100 m: %.2f dB\n', PL_LOS);
@@ -129,8 +133,18 @@ fprintf('\nCHECK 5 — Cascaded IRS Gain\n');
 
 d_UE = 100;
 
-G_BS_IRS = path_gain_lin(cfg.D_BS_IRS, true);
-G_IRS_UE = path_gain_lin(d_UE, true);
+% Pass cfg to path_gain_lin because the function
+% internally calls path_loss_dB using cfg.
+G_BS_IRS = path_gain_lin( ...
+    cfg.D_BS_IRS, ...
+    true, ...
+    cfg);
+
+G_IRS_UE = path_gain_lin( ...
+    d_UE, ...
+    true, ...
+    cfg);
+
 G_elem = cfg.G_ELEMENT_LIN;
 
 G_expected = G_BS_IRS * G_elem * G_IRS_UE;
@@ -221,11 +235,11 @@ SNR_active_dB = 10*log10(SNR_active);
 
 fprintf('Active IRS SNR: %.2f dB\n', SNR_active_dB);
 
-P_amp = N * cfg.PC_W;
-P_total = cfg.PT_W + P_amp;
+P_circuit = N * cfg.PC_W;
+P_total = cfg.PT_W + cfg.PSTATIC_W + P_circuit;
 
-fprintf('IRS amplification power: %.4f W\n', P_amp);
-fprintf('Effective transmit power: %.4f W\n', P_total);
+fprintf('IRS circuit power: %.4f W\n', P_circuit);
+fprintf('Total active-IRS power: %.4f W\n', P_total);
 
 if isfinite(SNR_active) && SNR_active > 0
     fprintf('PASS: Active IRS SNR is finite and positive\n');
@@ -250,11 +264,8 @@ SNR_relay = compute_SNR( ...
 
 SNR_relay_dB = 10*log10(SNR_relay);
 
-N_avg = round(median(cfg.N_RANGE));
-
-P_relay = cfg.PT_W + ...
-    cfg.PSTATIC_W + ...
-    N_avg * cfg.PC_W;
+% Use the SAME relay reference definition as config.m.
+P_relay = cfg.P_RELAY_W;
 
 fprintf('Relay SNR: %.2f dB\n', SNR_relay_dB);
 fprintf('Relay power budget: %.4f W\n', P_relay);
@@ -264,6 +275,7 @@ if isfinite(SNR_relay) && SNR_relay > 0
 else
     fprintf('FAIL: Relay SNR is invalid\n');
 end
+
 
 %% Final message
 

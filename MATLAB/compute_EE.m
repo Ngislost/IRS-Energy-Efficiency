@@ -1,81 +1,97 @@
-function [EE, throughput, total_power] = compute_EE(SNR, scheme, N, config)
+function [EE, throughput, total_power] = compute_EE( ...
+    SNR, scheme, N, config)
+
 % compute_EE
-% Computes throughput, total power consumption, and energy efficiency
-% for one channel realization.
+% Computes throughput, total power consumption, and
+% energy efficiency for one channel realization.
 %
 % SNR        : Instantaneous linear SNR
 % scheme     : 'no_irs', 'passive', 'active', or 'relay'
 % N          : Number of IRS elements
 % config     : Configuration structure
 %
-% EE         : Energy efficiency (bit/J)
-% throughput : Achievable throughput (bit/s)
-% total_power: Total power consumption (W)
+% EE         : Energy efficiency in bit/J
+% throughput : Achievable throughput in bit/s
+% total_power: Total power consumption in W
 
-    %% Throughput
-    %
-    % Shannon capacity:
-    % R = B * log2(1 + SNR)
+%% Numerical safety
 
-    throughput = config.BW_HZ * ...
-                 log2(1 + max(SNR, 0));
+SNR = max(SNR, 0);
 
 
-    %% Total power consumption
+%% Throughput
 
-    switch lower(scheme)
+% Shannon achievable rate:
+%
+% R = B * log2(1 + SNR)
 
-        case 'no_irs'
-
-            % No IRS hardware is present.
-            % BS transmit power only.
-
-            total_power = config.PT_W;
+throughput = ...
+    config.BW_HZ * log2(1 + SNR);
 
 
-        case 'passive'
+%% Total power consumption
 
-            % Passive IRS:
-            % BS transmit power
-            % + static IRS hardware power
-            % + per-element controller power.
+switch lower(scheme)
 
-            total_power = config.PT_W + ...
-                          config.PSTATIC_W + ...
-                          N * config.PC_W;
+    %% ---------------------------------------------------------
+    case 'no_irs'
 
+        % Direct BS -> UE communication.
+        % Only BS transmit power is counted.
 
-        case 'active'
-
-            % Simplified active-IRS power-budget model.
-            %
-            % N*Pc is treated as amplification power and is already
-            % included in the effective transmit power used in
-            % compute_SNR.m.
-            %
-            % Therefore N*Pc is NOT added again here.
-
-            total_power = config.PT_W + ...
-                          config.PSTATIC_W;
+        total_power = ...
+            config.PT_W;
 
 
-        case 'relay'
+        %% ---------------------------------------------------------
+    case 'passive'
 
-            % Fixed relay power budget.
-            % Independent of the IRS element-count sweep.
+        % Passive IRS:
+        %
+        % BS transmit power
+        % + static IRS hardware power
+        % + per-element controller power
 
-            total_power = config.P_RELAY_W;
+        total_power = ...
+            config.PT_W ...
+            + config.PSTATIC_W ...
+            + N * config.PC_W;
 
 
-        otherwise
+        %% ---------------------------------------------------------
+    case 'active'
 
-            error('Unknown scheme: %s', scheme);
+        % Simplified active-IRS power-budget model.
+        %
+        % N*Pc has already been incorporated into the
+        % effective transmit power in compute_SNR.m.
+        %
+        % Therefore it is NOT added again here.
 
-    end
+        total_power = ...
+            config.PT_W ...
+            + config.PSTATIC_W;
 
 
-    %% Energy efficiency
+        %% ---------------------------------------------------------
+    case 'relay'
 
-    EE = throughput / total_power;
+        % Fixed relay reference power.
+
+        total_power = ...
+            config.P_RELAY_W;
+
+
+        %% ---------------------------------------------------------
+    otherwise
+
+        error('Unknown scheme: %s', scheme);
+
+end
+
+
+%% Energy efficiency
+
+EE = throughput / total_power;
 
 end

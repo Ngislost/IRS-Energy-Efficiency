@@ -1,35 +1,46 @@
 function is_LOS = sample_LOS(d_m, beta_override)
 % sample_LOS
+% Samples whether a link is LOS or NLOS.
 %
-% If beta_override is supplied:
-%   beta = fixed blockage probability
+% d_m          : Link distance in metres
+% beta_override:
+%                NaN -> use distance-dependent UMa LOS probability
+%                [0,1] -> use supplied blockage probability
 %
-% If beta_override is NaN:
-%   use the 3GPP distance-dependent LOS probability.
+% beta is interpreted as:
 %
-% Returns:
-%   true  -> LOS
-%   false -> NLOS
+%   beta = P(NLOS)
+%
+% Therefore:
+%
+%   P(LOS) = 1 - beta
 
-if nargin > 1 && ~isnan(beta_override)
+%% Validate blockage probability
 
-    % Fixed blockage probability
-    beta = beta_override;
+if nargin >= 2 && ~isnan(beta_override)
+
+    beta = min(max(beta_override, 0), 1);
 
 else
 
-    d_m = max(d_m, 1.0);
+    %% Distance-dependent UMa LOS probability
 
-    % 3GPP UMa LOS probability
-    P_LOS = min(18 / d_m, 1) * ...
-        (1 - exp(-d_m / 63)) + ...
-        exp(-d_m / 63);
+    d_m = max(d_m, 10.0);
+
+    % Simplified UMa LOS probability for low-height UE.
+
+    P_LOS = ...
+        min(18 / d_m, 1) ...
+        * (1 - exp(-d_m / 63)) ...
+        + exp(-d_m / 63);
 
     beta = 1 - P_LOS;
 
 end
 
-% rand() > beta means LOS probability = 1-beta
+
+%% Sample LOS/NLOS state
+
 is_LOS = rand() > beta;
 
 end
